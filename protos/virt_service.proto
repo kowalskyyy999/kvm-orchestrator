@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package libvirt_service;
+
+service LibvirtService {
+  rpc CreateDomainService(CreateDomainRequest) returns (UniversalResponse) {}
+  rpc ControllerDomainService(ControllerDomainRequest) returns (UniversalResponse) {}
+  rpc MonitoringDomainService(MonitoringDomainRequest) returns (UniversalResponse) {}
+}
+
+message CreateDomainRequest {
+  string xml = 1;
+}
+
+enum Instructions {
+  Start = 0;
+  Shutdown = 1;
+  Reboot = 2;
+}
+message ControllerDomainRequest {
+  string name = 1;
+  Instructions instruction = 2;
+}
+
+message MonitoringDomainRequest {
+  string name = 1;
+}
+
+message UniversalResponse {
+  string message = 1;
+}
+
+
