@@ -8,8 +8,8 @@ use tonic::{
 };
 use vsc::libvirt_service_server::{LibvirtService, LibvirtServiceServer};
 use vsc::{
-    ControllerDomainRequest, CreateDomainRequest, Instructions, MonitoringDomainRequest,
-    UniversalResponse,
+    ControllerDomainRequest, CreateDomainRequest, InfoDomainRequest, InfoDomainResponse,
+    Instructions, UniversalResponse,
 };
 
 use libvirtrs::connection::Connection;
@@ -20,6 +20,18 @@ struct KVMManager {
 }
 
 mod client;
+
+// impl Default for InfoDomainResponse {
+//     fn default() -> InfoDomainResponse {
+//         InfoDomainResponse {
+//             state: String::new(),
+//             max_memory: 0,
+//             memory: 0,
+//             virt_cpu: 0,
+//             cpu_time: 0,
+//         }
+//     }
+// }
 
 #[tonic::async_trait]
 impl LibvirtService for KVMManager {
@@ -67,12 +79,32 @@ impl LibvirtService for KVMManager {
         }))
     }
 
-    async fn monitoring_domain_service(
+    async fn info_domain_service(
         &self,
-        request: Request<MonitoringDomainRequest>,
-    ) -> Result<Response<UniversalResponse>, Status> {
-        Ok(Response::new(UniversalResponse {
-            message: "Success".to_string(),
+        request: Request<InfoDomainRequest>,
+    ) -> Result<Response<InfoDomainResponse>, Status> {
+        let conn = &self.conn;
+        let req = request.into_inner();
+
+        let domains = &conn.list_all_domains().unwrap();
+        let req_domain_name = req.name;
+
+        for domain in domains {
+            let domain_name = domain.get_name();
+            if domain_name.eq(&req_domain_name) {
+                let info = domain.domain_info().unwrap();
+                return Ok(Response::new(InfoDomainResponse {
+                    state: info.state,
+                    max_memory: info.max_memory as i64,
+                    memory: info.memory as i64,
+                    virt_cpu: info.virt_cpu as i32,
+                    cpu_time: info.cpu_time as i64,
+                }));
+            }
+        }
+
+        Ok(Response::new(InfoDomainResponse {
+            ..Default::default()
         }))
     }
 }

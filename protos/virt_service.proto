@@ -5,7 +5,7 @@ package libvirt_service;
 service LibvirtService {
   rpc CreateDomainService(CreateDomainRequest) returns (UniversalResponse) {}
   rpc ControllerDomainService(ControllerDomainRequest) returns (UniversalResponse) {}
-  rpc MonitoringDomainService(MonitoringDomainRequest) returns (UniversalResponse) {}
+  rpc InfoDomainService(InfoDomainRequest) returns (InfoDomainResponse) {}
 }
 
 message CreateDomainRequest {
@@ -22,12 +22,20 @@ message ControllerDomainRequest {
   Instructions instruction = 2;
 }
 
-message MonitoringDomainRequest {
-  string name = 1;
-}
 
 message UniversalResponse {
   string message = 1;
 }
 
 
+message InfoDomainRequest {
+  string name = 1;
+}
+
+message InfoDomainResponse {
+  string state = 1;
+  int64 max_memory = 2;
+  int64 memory = 3;
+  int32 virt_cpu = 4;
+  int64 cpu_time = 5;
+}
